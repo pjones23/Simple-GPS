@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">SimpleGPS</string>
+    <string name="location_manager_provider">Location Manager</string>
+    <string name="fused_location_provider">Fused Location Provider Client</string>
+    <string name="fusion_location_provider">FusionLocationServices</string>
+    <string name="toggle_lbl_txt">Click below to toggle location providers</string>
+    <string name="no_location_permission">Location permission not granted</string>
+    <string name="default_location_txt">--</string>
+    <string name="location_not_requested">Location not requested</string>
+    <string name="location_not_found">Location not found</string>
+    <string name="location_manager_last_known_location_api">LocationManager.getLastKnownLocation</string>
+    <string name="location_manager_request_single_update_api">LocationManager.requestSingleUpdate</string>
+    <string name="location_manager_request_location_updates_api">LocationManager.requestLocationUpdates</string>
+    <string name="fused_location_provider_get_last_location_api">FusedLocationProviderClient.getLastLocation</string>
+    <string name="fused_location_provider_location_updates_api">FusedLocationProviderClient.requestLocationUpdates</string>
+</resources>
