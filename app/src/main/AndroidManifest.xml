@@ -13,7 +13,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat">
-        <activity android:name=".mvvmi.MainActivity">
+        <activity android:name=".mvvmi.LocationActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

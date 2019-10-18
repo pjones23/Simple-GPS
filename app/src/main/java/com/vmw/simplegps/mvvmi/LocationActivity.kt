@@ -3,7 +3,6 @@ package com.vmw.simplegps.mvvmi
 import android.Manifest
 import android.content.pm.PackageManager
 import android.location.Location
-import android.location.LocationListener
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -18,9 +17,9 @@ import com.vmw.simplegps.location.LocatorManager
 import kotlinx.coroutines.*
 import java.text.DateFormat
 
-private const val TAG = "MainActivity"
+private const val TAG = "LocationActivity"
 
-class MainActivity : AppCompatActivity(), View.OnClickListener, LocationListener {
+class LocationActivity : AppCompatActivity(), View.OnClickListener {
 
     private lateinit var getLocationBtn: FloatingActionButton
     private lateinit var locationManagerLastKnownStatus: TextView
@@ -114,6 +113,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, LocationListener
         when(v?.id) {
             R.id.get_location_btn -> {
                 Log.i(TAG, "Getting location")
+                updateLocationStatus()
                 coroutineScope.launch(coroutineExceptionHandler) {
                     getLocation()
                 }
@@ -121,12 +121,20 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, LocationListener
         }
     }
 
+    private fun updateLocationStatus() {
+        locationManagerLastKnownStatus.text = getString(R.string.waiting_for_location)
+        locationManagerSingleUpdateStatus.text = getString(R.string.waiting_for_location)
+        locationManagerMultipleUpdateStatus.text = getString(R.string.waiting_for_location)
+        fusionProviderLastKnownStatus.text = getString(R.string.waiting_for_location)
+        fusionProviderMultipleUpdateStatus.text = getString(R.string.waiting_for_location)
+    }
+
     private fun getLocation() {
         if (ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
             && ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             coroutineScope.launch(coroutineExceptionHandler) {
                 withContext(Dispatchers.Main) {
-                    Snackbar.make(findViewById(R.id.mainConstraintLayout), R.string.no_location_permission, Snackbar.LENGTH_SHORT)
+                    Snackbar.make(findViewById(R.id.mainConstraintLayout), R.string.no_location_permission, Snackbar.LENGTH_SHORT).show()
                 }
                 return@launch
             }
@@ -134,17 +142,4 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, LocationListener
             viewModel.requestLocation()
         }
     }
-
-    override fun onLocationChanged(location: Location?) {
-        Log.i(TAG, "Location changed")
-    }
-
-    override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
-        Log.i(TAG, "status changed")    }
-
-    override fun onProviderEnabled(provider: String?) {
-        Log.i(TAG, "provider enabled")    }
-
-    override fun onProviderDisabled(provider: String?) {
-        Log.i(TAG, "provider disabled")    }
 }

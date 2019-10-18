@@ -8,6 +8,7 @@
     <string name="default_location_txt">--</string>
     <string name="location_not_requested">Location not requested</string>
     <string name="location_not_found">Location not found</string>
+    <string name="waiting_for_location">Waiting for location</string>
     <string name="location_manager_last_known_location_api">LocationManager.getLastKnownLocation</string>
     <string name="location_manager_request_single_update_api">LocationManager.requestSingleUpdate</string>
     <string name="location_manager_request_location_updates_api">LocationManager.requestLocationUpdates</string>
