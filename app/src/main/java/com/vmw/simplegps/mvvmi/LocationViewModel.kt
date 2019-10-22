@@ -1,6 +1,7 @@
 package com.vmw.simplegps.mvvmi
 
 import android.app.Application
+import android.content.Context
 import android.location.Location
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
@@ -23,6 +24,8 @@ class LocationViewModel(application: Application) : AndroidViewModel(application
     fun requestLocation() {
         interactor.requestLocations((getApplication() as Application).applicationContext)
     }
+
+    fun isProviderEnabled(provider: String) : Boolean = interactor.isProviderEnabled((getApplication() as Application).applicationContext, provider)
 
     interface LocationViewModelCallback {
         fun locationUpdated(type: Int, location: Location)

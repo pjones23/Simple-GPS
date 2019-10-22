@@ -18,4 +18,6 @@ class LocationInteractor(val callback: LocationViewModel.LocationViewModelCallba
         })
     }
 
+    fun isProviderEnabled(context: Context, provider: String) : Boolean = LocatorManager.getInstance(context).isProviderEnabled(provider)
+
 }

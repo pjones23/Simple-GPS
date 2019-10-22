@@ -6,6 +6,7 @@ import android.location.Location
 import android.location.LocationManager
 import android.os.HandlerThread
 import android.os.Looper
+import android.util.Log
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
@@ -42,7 +43,9 @@ class LocatorManager(context: Context) {
 
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3000L, 0f, TypedLocationListener(LOCATION_MANAGER_MULTIPLE_UPDATE, locatorCallback), locationManagerMultipleRequestHandlerThread.looper )
 
-        fusedLocationProviderClient.lastLocation.addOnSuccessListener { locatorCallback.locationUpdated(FUSION_CLIENT_LAST_KNOWN, it) }
+        fusedLocationProviderClient.lastLocation.addOnSuccessListener { it?.let { locatorCallback.locationUpdated(FUSION_CLIENT_LAST_KNOWN, it) }?:run {
+            Log.e(TAG, "No location provided")
+        } }
 
         fusedLocationProviderClient.lastLocation.addOnFailureListener { locatorCallback.locationNotKnown(FUSION_CLIENT_LAST_KNOWN) }
 
@@ -54,6 +57,10 @@ class LocatorManager(context: Context) {
         }
         fusedLocationProviderClient.requestLocationUpdates(locationRequest, TypedLocationCallback(FUSION_CLIENT_MULTIPLE_UPDATE, locatorCallback), fusionProviderMultipleRequestHandlerThread.looper)
     }
+
+    fun isProviderEnabled(provider: String) : Boolean = if(LocationManager.GPS_PROVIDER == provider || LocationManager.NETWORK_PROVIDER == provider || LocationManager.PASSIVE_PROVIDER == provider)
+            locationManager.isProviderEnabled(provider)
+        else false
 
     companion object {
 

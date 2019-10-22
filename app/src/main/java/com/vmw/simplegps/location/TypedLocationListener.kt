@@ -3,6 +3,9 @@ package com.vmw.simplegps.location
 import android.location.Location
 import android.location.LocationListener
 import android.os.Bundle
+import android.util.Log
+
+private const val TAG = "TypedLocationListener"
 
 class TypedLocationListener(private val type: Int, private val locatorCallback: LocatorManager.LocatorCallback) : LocationListener {
     /**
@@ -23,7 +26,6 @@ class TypedLocationListener(private val type: Int, private val locatorCallback: 
      *
      */
     override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     /**
@@ -33,7 +35,7 @@ class TypedLocationListener(private val type: Int, private val locatorCallback: 
      * update.
      */
     override fun onProviderEnabled(provider: String?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        Log.i(TAG, "Provider enabled: $provider")
     }
 
     /**
@@ -45,6 +47,6 @@ class TypedLocationListener(private val type: Int, private val locatorCallback: 
      * update.
      */
     override fun onProviderDisabled(provider: String?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        Log.i(TAG, "Provider enabled: $provider")
     }
 }

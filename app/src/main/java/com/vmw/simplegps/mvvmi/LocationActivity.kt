@@ -3,6 +3,7 @@ package com.vmw.simplegps.mvvmi
 import android.Manifest
 import android.content.pm.PackageManager
 import android.location.Location
+import android.location.LocationManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -70,6 +71,15 @@ class LocationActivity : AppCompatActivity(), View.OnClickListener {
     }
 
 
+    override fun onResume() {
+        super.onResume()
+
+        // Update status of location providers
+        coroutineScope.launch(coroutineExceptionHandler) {
+            updateLocationProviderStatuses()
+        }
+    }
+
     override fun onDestroy() {
         viewModel.locationLiveData.removeObserver(observer)
         super.onDestroy()
@@ -77,7 +87,7 @@ class LocationActivity : AppCompatActivity(), View.OnClickListener {
 
     private fun getObserver() : Observer<LocationModel> = Observer {
         it?.let {
-            Log.i(TAG, "${it.type}, ${it.latitude}, ${it.longitude}")
+            Log.d(TAG, "${it.type}, ${it.latitude}, ${it.longitude}")
             when(it.type) {
                 LocatorManager.LOCATION_MANAGER_LAST_KNOWN -> {
                     locationManagerLastKnownStatus.text = DateFormat.getTimeInstance().format(it.time)
@@ -116,6 +126,7 @@ class LocationActivity : AppCompatActivity(), View.OnClickListener {
                 updateLocationStatus()
                 coroutineScope.launch(coroutineExceptionHandler) {
                     getLocation()
+                    updateLocationProviderStatuses()
                 }
             }
         }
@@ -141,5 +152,17 @@ class LocationActivity : AppCompatActivity(), View.OnClickListener {
         } else {
             viewModel.requestLocation()
         }
+    }
+
+    private fun updateLocationProviderStatuses() {
+        val isGpsProviderEnabled = viewModel.isProviderEnabled(LocationManager.GPS_PROVIDER)
+        val isNetworkProviderEnabled = viewModel.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+        val isPassiveProviderEnabled = viewModel.isProviderEnabled(LocationManager.PASSIVE_PROVIDER)
+        Log.i(TAG, "GPS: $isGpsProviderEnabled Network: $isNetworkProviderEnabled Passive: $isPassiveProviderEnabled")
+        // TODO Show Status in UI
+        /*coroutineScope.launch(coroutineExceptionHandler) {
+            withContext(Dispatchers.Main) {
+            }
+        }*/
     }
 }
