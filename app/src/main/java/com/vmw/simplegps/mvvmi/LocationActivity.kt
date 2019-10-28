@@ -8,6 +8,8 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.ImageButton
+import android.widget.RadioButton
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
@@ -33,6 +35,10 @@ class LocationActivity : AppCompatActivity(), View.OnClickListener {
     private lateinit var fusionProviderLastKnownLocationTxt: TextView
     private lateinit var fusionProviderMultipleUpdateStatus: TextView
     private lateinit var fusionProviderMultipleUpdateLocationTxt: TextView
+    private lateinit var syncProviderStatusButton: ImageButton
+    private lateinit var gpsProviderRadioButton: RadioButton
+    private lateinit var networkProviderRadioButton: RadioButton
+    private lateinit var passiveProviderRadioButton: RadioButton
     private lateinit var viewModel: LocationViewModel
     private val observer = getObserver()
     private val job = Job()
@@ -65,6 +71,18 @@ class LocationActivity : AppCompatActivity(), View.OnClickListener {
 
         fusionProviderMultipleUpdateStatus = findViewById(R.id.fused_location_provider_multiple_updates_card_status)
         fusionProviderMultipleUpdateLocationTxt = findViewById(R.id.fused_location_provider_multiple_updates_card_location)
+
+        syncProviderStatusButton = findViewById(R.id.sync_provider_status_btn)
+        syncProviderStatusButton.setOnClickListener(this)
+
+        gpsProviderRadioButton = findViewById(R.id.gps_radio_btn)
+        gpsProviderRadioButton.setTextColor(applicationContext.getColor(R.color.red))
+
+        networkProviderRadioButton = findViewById(R.id.network_radio_btn)
+        networkProviderRadioButton.setTextColor(applicationContext.getColor(R.color.red))
+
+        passiveProviderRadioButton = findViewById(R.id.passive_radio_btn)
+        passiveProviderRadioButton.setTextColor(applicationContext.getColor(R.color.red))
 
         viewModel = LocationViewModel(application)
         viewModel.locationLiveData.observe(this, observer)
@@ -129,6 +147,12 @@ class LocationActivity : AppCompatActivity(), View.OnClickListener {
                     updateLocationProviderStatuses()
                 }
             }
+            R.id.sync_provider_status_btn -> {
+                // Update status of location providers
+                coroutineScope.launch(coroutineExceptionHandler) {
+                    updateLocationProviderStatuses()
+                }
+            }
         }
     }
 
@@ -145,7 +169,7 @@ class LocationActivity : AppCompatActivity(), View.OnClickListener {
             && ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             coroutineScope.launch(coroutineExceptionHandler) {
                 withContext(Dispatchers.Main) {
-                    Snackbar.make(findViewById(R.id.mainConstraintLayout), R.string.no_location_permission, Snackbar.LENGTH_SHORT).show()
+                    Snackbar.make(findViewById(R.id.mainCoordinatorLayout), R.string.no_location_permission, Snackbar.LENGTH_SHORT).show()
                 }
                 return@launch
             }
@@ -159,10 +183,13 @@ class LocationActivity : AppCompatActivity(), View.OnClickListener {
         val isNetworkProviderEnabled = viewModel.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
         val isPassiveProviderEnabled = viewModel.isProviderEnabled(LocationManager.PASSIVE_PROVIDER)
         Log.i(TAG, "GPS: $isGpsProviderEnabled Network: $isNetworkProviderEnabled Passive: $isPassiveProviderEnabled")
-        // TODO Show Status in UI
-        /*coroutineScope.launch(coroutineExceptionHandler) {
+        // Show Status in UI
+        coroutineScope.launch(coroutineExceptionHandler) {
             withContext(Dispatchers.Main) {
+                gpsProviderRadioButton.setTextColor(if(isGpsProviderEnabled) applicationContext.getColor(R.color.green) else application.getColor(R.color.red))
+                networkProviderRadioButton.setTextColor(if(isNetworkProviderEnabled) applicationContext.getColor(R.color.green) else application.getColor(R.color.red))
+                passiveProviderRadioButton.setTextColor(if(isPassiveProviderEnabled) applicationContext.getColor(R.color.green) else application.getColor(R.color.red))
             }
-        }*/
+        }
     }
 }

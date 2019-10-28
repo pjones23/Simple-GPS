@@ -14,4 +14,7 @@
     <string name="location_manager_request_location_updates_api">LocationManager.requestLocationUpdates</string>
     <string name="fused_location_provider_get_last_location_api">FusedLocationProviderClient.getLastLocation</string>
     <string name="fused_location_provider_location_updates_api">FusedLocationProviderClient.requestLocationUpdates</string>
+    <string name="gps_provider_txt">GPS</string>
+    <string name="network_provider_txt">Network</string>
+    <string name="passive_provider_txt">Passive</string>
 </resources>
