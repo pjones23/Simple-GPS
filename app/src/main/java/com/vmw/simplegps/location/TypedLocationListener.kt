@@ -27,6 +27,7 @@ class TypedLocationListener(private val type: Int, private val locatorCallback: 
      */
     override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
         Log.i(TAG, "$provider status changed to $status")
+        locatorCallback.locationManagerProviderStatusModified()
     }
 
     /**
@@ -37,6 +38,7 @@ class TypedLocationListener(private val type: Int, private val locatorCallback: 
      */
     override fun onProviderEnabled(provider: String?) {
         Log.i(TAG, "Provider enabled: $provider")
+        locatorCallback.locationManagerProviderStatusModified()
     }
 
     /**
@@ -49,5 +51,6 @@ class TypedLocationListener(private val type: Int, private val locatorCallback: 
      */
     override fun onProviderDisabled(provider: String?) {
         Log.i(TAG, "Provider disabled: $provider")
+        locatorCallback.locationManagerProviderStatusModified()
     }
 }

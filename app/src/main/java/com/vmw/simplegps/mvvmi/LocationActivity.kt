@@ -10,6 +10,7 @@ import android.util.Log
 import android.view.View
 import android.widget.ImageButton
 import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
@@ -22,7 +23,7 @@ import java.text.DateFormat
 
 private const val TAG = "LocationActivity"
 
-class LocationActivity : AppCompatActivity(), View.OnClickListener {
+class LocationActivity : AppCompatActivity(), View.OnClickListener, RadioGroup.OnCheckedChangeListener {
 
     private lateinit var getLocationBtn: FloatingActionButton
     private lateinit var locationManagerLastKnownStatus: TextView
@@ -35,6 +36,7 @@ class LocationActivity : AppCompatActivity(), View.OnClickListener {
     private lateinit var fusionProviderLastKnownLocationTxt: TextView
     private lateinit var fusionProviderMultipleUpdateStatus: TextView
     private lateinit var fusionProviderMultipleUpdateLocationTxt: TextView
+    private lateinit var locationProviderRadioGroup: RadioGroup
     private lateinit var syncProviderStatusButton: ImageButton
     private lateinit var gpsProviderRadioButton: RadioButton
     private lateinit var networkProviderRadioButton: RadioButton
@@ -71,6 +73,9 @@ class LocationActivity : AppCompatActivity(), View.OnClickListener {
 
         fusionProviderMultipleUpdateStatus = findViewById(R.id.fused_location_provider_multiple_updates_card_status)
         fusionProviderMultipleUpdateLocationTxt = findViewById(R.id.fused_location_provider_multiple_updates_card_location)
+
+        locationProviderRadioGroup = findViewById(R.id.provider_radio_grp)
+        locationProviderRadioGroup.setOnCheckedChangeListener(this)
 
         syncProviderStatusButton = findViewById(R.id.sync_provider_status_btn)
         syncProviderStatusButton.setOnClickListener(this)
@@ -109,29 +114,35 @@ class LocationActivity : AppCompatActivity(), View.OnClickListener {
             when(it.type) {
                 LocatorManager.LOCATION_MANAGER_LAST_KNOWN -> {
                     locationManagerLastKnownStatus.text = DateFormat.getTimeInstance().format(it.time)
-                    locationManagerLastKnownLocationTxt.text = if(it.latitude == 400.0) applicationContext.getString(R.string.location_not_found) else
+                    locationManagerLastKnownLocationTxt.text = if(it.latitude == LocatorManager.INVALID_LOCATION) applicationContext.getString(R.string.location_not_found) else
                         "${Location.convert(it.latitude, Location.FORMAT_DEGREES)} ${Location.convert(it.longitude, Location.FORMAT_DEGREES)}"
                 }
                 LocatorManager.LOCATION_MANAGER_SINGLE_UPDATE -> {
                     locationManagerSingleUpdateStatus.text = DateFormat.getTimeInstance().format(it.time)
-                    locationManagerSingleUpdateLocationTxt.text = if(it.latitude == 400.0) applicationContext.getString(R.string.location_not_found) else
+                    locationManagerSingleUpdateLocationTxt.text = if(it.latitude == LocatorManager.INVALID_LOCATION) applicationContext.getString(R.string.location_not_found) else
                         "${Location.convert(it.latitude, Location.FORMAT_DEGREES)} ${Location.convert(it.longitude, Location.FORMAT_DEGREES)}"
                 }
                 LocatorManager.LOCATION_MANAGER_MULTIPLE_UPDATE -> {
                     locationManagerMultipleUpdateStatus.text = DateFormat.getTimeInstance().format(it.time)
-                    locationManagerMultipleUpdateLocationTxt.text = if(it.latitude == 400.0) applicationContext.getString(R.string.location_not_found) else
+                    locationManagerMultipleUpdateLocationTxt.text = if(it.latitude == LocatorManager.INVALID_LOCATION) applicationContext.getString(R.string.location_not_found) else
                         "${Location.convert(it.latitude, Location.FORMAT_DEGREES)} ${Location.convert(it.longitude, Location.FORMAT_DEGREES)}"
                 }
                 LocatorManager.FUSION_CLIENT_LAST_KNOWN -> {
                     fusionProviderLastKnownStatus.text = DateFormat.getTimeInstance().format(it.time)
-                    fusionProviderLastKnownLocationTxt.text = if(it.latitude == 400.0) applicationContext.getString(R.string.location_not_found) else
+                    fusionProviderLastKnownLocationTxt.text = if(it.latitude == LocatorManager.INVALID_LOCATION) applicationContext.getString(R.string.location_not_found) else
                         "${Location.convert(it.latitude, Location.FORMAT_DEGREES)} ${Location.convert(it.longitude, Location.FORMAT_DEGREES)}"
                 }
                 LocatorManager.FUSION_CLIENT_MULTIPLE_UPDATE -> {
                     fusionProviderMultipleUpdateStatus.text = DateFormat.getTimeInstance().format(it.time)
-                    fusionProviderMultipleUpdateLocationTxt.text = if(it.latitude == 400.0) applicationContext.getString(R.string.location_not_found) else
+                    fusionProviderMultipleUpdateLocationTxt.text = if(it.latitude ==LocatorManager.INVALID_LOCATION) applicationContext.getString(R.string.location_not_found) else
                         "${Location.convert(it.latitude, Location.FORMAT_DEGREES)} ${Location.convert(it.longitude, Location.FORMAT_DEGREES)}"
                 }
+                LocatorManager.LOCATION_MANAGER_PROVIDER_STATUS_MODIFIED -> {
+                    coroutineScope.launch(coroutineExceptionHandler) {
+                        updateLocationProviderStatuses()
+                    }
+                }
+                else -> Log.w(TAG, "Invalid Location model type received (${it.type})")
             }
         }
     }
@@ -141,6 +152,7 @@ class LocationActivity : AppCompatActivity(), View.OnClickListener {
         when(v?.id) {
             R.id.get_location_btn -> {
                 Log.i(TAG, "Getting location")
+                resetLocation()
                 updateLocationStatus()
                 coroutineScope.launch(coroutineExceptionHandler) {
                     getLocation()
@@ -156,12 +168,38 @@ class LocationActivity : AppCompatActivity(), View.OnClickListener {
         }
     }
 
+
+    override fun onCheckedChanged(group: RadioGroup?, checkedId: Int) {
+        resetLocation()
+        resetLocationStatus()
+        // stop location updates
+        coroutineScope.launch(coroutineExceptionHandler) {
+            viewModel.stopLocationUpdates()
+        }
+    }
+
     private fun updateLocationStatus() {
         locationManagerLastKnownStatus.text = getString(R.string.waiting_for_location)
         locationManagerSingleUpdateStatus.text = getString(R.string.waiting_for_location)
         locationManagerMultipleUpdateStatus.text = getString(R.string.waiting_for_location)
         fusionProviderLastKnownStatus.text = getString(R.string.waiting_for_location)
         fusionProviderMultipleUpdateStatus.text = getString(R.string.waiting_for_location)
+    }
+
+    private fun resetLocation() {
+        locationManagerLastKnownLocationTxt.text = getString(R.string.default_location_txt)
+        locationManagerSingleUpdateLocationTxt.text = getString(R.string.default_location_txt)
+        locationManagerMultipleUpdateLocationTxt.text = getString(R.string.default_location_txt)
+        fusionProviderLastKnownLocationTxt.text = getString(R.string.default_location_txt)
+        fusionProviderMultipleUpdateLocationTxt.text = getString(R.string.default_location_txt)
+    }
+
+    private fun resetLocationStatus() {
+        locationManagerLastKnownStatus.text = getString(R.string.location_not_requested)
+        locationManagerSingleUpdateStatus.text = getString(R.string.location_not_requested)
+        locationManagerMultipleUpdateStatus.text = getString(R.string.location_not_requested)
+        fusionProviderLastKnownStatus.text = getString(R.string.location_not_requested)
+        fusionProviderMultipleUpdateStatus.text = getString(R.string.location_not_requested)
     }
 
     private fun getLocation() {
@@ -174,7 +212,16 @@ class LocationActivity : AppCompatActivity(), View.OnClickListener {
                 return@launch
             }
         } else {
-            viewModel.requestLocation()
+            viewModel.requestLocation(getChosenProvider())
+        }
+    }
+
+    private fun getChosenProvider(): String {
+        return when {
+            gpsProviderRadioButton.isChecked -> LocationManager.GPS_PROVIDER
+            networkProviderRadioButton.isChecked -> LocationManager.NETWORK_PROVIDER
+            passiveProviderRadioButton.isChecked -> LocationManager.PASSIVE_PROVIDER
+            else -> LocationManager.GPS_PROVIDER
         }
     }
 
@@ -186,9 +233,9 @@ class LocationActivity : AppCompatActivity(), View.OnClickListener {
         // Show Status in UI
         coroutineScope.launch(coroutineExceptionHandler) {
             withContext(Dispatchers.Main) {
-                gpsProviderRadioButton.setTextColor(if(isGpsProviderEnabled) applicationContext.getColor(R.color.green) else application.getColor(R.color.red))
-                networkProviderRadioButton.setTextColor(if(isNetworkProviderEnabled) applicationContext.getColor(R.color.green) else application.getColor(R.color.red))
-                passiveProviderRadioButton.setTextColor(if(isPassiveProviderEnabled) applicationContext.getColor(R.color.green) else application.getColor(R.color.red))
+                gpsProviderRadioButton.setTextColor(if(isGpsProviderEnabled) getColor(R.color.green) else getColor(R.color.red))
+                networkProviderRadioButton.setTextColor(if(isNetworkProviderEnabled) getColor(R.color.green) else getColor(R.color.red))
+                passiveProviderRadioButton.setTextColor(if(isPassiveProviderEnabled) getColor(R.color.green) else getColor(R.color.red))
             }
         }
     }
